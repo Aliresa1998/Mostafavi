@@ -19,7 +19,7 @@
     <div class="custom-container mx-auto py-8">
         <div class="bg-white rounded-lg shadow-lg p-8">
             <h1 class="text-3xl font-semibold mb-6">Circuit Calculator</h1>
-            <img style="width:50%" src="circuit_image.jpg" alt="Circuit Image" class="mx-auto mb-8 rounded-lg shadow-lg">
+            <img src="circuit_image.jpg" alt="Circuit Image" style="width:100%" class="mx-auto mb-8 rounded-lg shadow-lg">
 
 
 
@@ -60,56 +60,87 @@
             <button type="submit" onclick="handleClick()"
                 class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg">Calculate</button>
 
-                <div style="display: flex; justify-content: center;">
-                    <p id="p1" style="width: 100%; margin-top: 15px;">
+            <div style="display: flex; justify-content: center;">
+                <p id="p1" style="width: 100%; margin-top: 15px;">
 
-                    </p>
-                </div>
+                </p>
+            </div>
 
         </div>
     </div>
     <script>
 
+        class ComplexNumber {
+            constructor(real, imaginary) {
+                this.real = real;
+                this.imaginary = imaginary;
+            }
+
+            static add(complex1, complex2) {
+                var realSum = complex1.real + complex2.real;
+                var imaginarySum = complex1.imaginary + complex2.imaginary;
+                return new ComplexNumber(realSum, imaginarySum);
+            }
+
+            static divide(complex1, complex2) {
+                var divisor = complex2.real * complex2.real + complex2.imaginary * complex2.imaginary;
+                if (divisor === 0) {
+                    // Handle division by zero
+                    return new ComplexNumber(NaN, NaN);
+                } else {
+                    var realDiv = (complex1.real * complex2.real + complex1.imaginary * complex2.imaginary) / divisor;
+                    var imaginaryDiv = (complex2.real * complex1.imaginary - complex1.real * complex2.imaginary) / divisor;
+                    return new ComplexNumber(realDiv, imaginaryDiv);
+                }
+            }
+
+            static multiply(complex1, complex2) {
+                var realMul = complex1.real * complex2.real - complex1.imaginary * complex2.imaginary;
+                var imaginaryMul = complex1.real * complex2.imaginary + complex1.imaginary * complex2.real;
+                return new ComplexNumber(realMul, imaginaryMul);
+            }
+        }
 
         function handleClick() {
 
             const Complex = math.Complex;
 
-            var resistance = document.getElementById("resistance").value
-            var capacitor = document.getElementById("capacitor").value
-            var inductor = document.getElementById("inductor").value
+            var Res = document.getElementById("resistance").value
+            var Cap = document.getElementById("capacitor").value
+            var Ind = document.getElementById("inductor").value
             var a = document.getElementById("amplitude").value
             var w = document.getElementById("angular-frequency").value
-            var d = document.getElementById("phase-shift").value
+            var teta = document.getElementById("phase-shift").value
 
-            let tavan = new Complex(0, d);
-            let V = math.exp(tavan);
+            var up = new ComplexNumber(a + Math.cos(teta * (Math.PI / 180)), a + Math.sin(teta * (Math.PI / 180)));
+            var cRest = new ComplexNumber(Res, a + 0);
+            var cInd = new ComplexNumber(0, Ind * w);
+            var cCap = new ComplexNumber(0, 1 / (Cap * w));
 
-            var Zl = new Complex(0, inductor * w);
-            var TempZc = new Complex(0, inductor * w);
+            var add_res = ComplexNumber.add(cRest, ComplexNumber.add(cInd, cCap));
 
-            var tempOne = new Complex(1, 0)
-            console.log(tempOne.toString())
-            var Zc = math.divide(tempOne, TempZc);
 
-            console.log(Zl.toString())
-            console.log(Zc.toString())
+            var radteta = Math.atan(add_res.imaginary / add_res.real);
+            var degteta = radteta / Math.PI * 180;
 
-            var RtoComplex = new Complex(resistance, 0)
+            var zavie = teta - degteta;
 
-            var Req = math.add(Zc, Zl)
 
-            Req = math.add(Req, RtoComplex)
+            var mul_res = ComplexNumber.divide(up, add_res);
 
-            console.log(V.toString())
-            console.log(Req.toString())
+            var fres = Math.sqrt(Math.pow(mul_res.imaginary, 2) + Math.pow(mul_res.real, 2));
 
-            var I = math.divide(V, Req)
 
-            var V0 = math.multiply(I, Zc)
+            var result = "I : " + fres.toFixed(6) + "e^" + zavie.toFixed(2);
 
-            
-          document.getElementById("p1").innerHTML = "<hr>" + "result: " + "<br>" + "V0 = " + V0.toString()
+
+            mul_res = ComplexNumber.multiply(mul_res, cCap);
+
+            fres = Math.sqrt(Math.pow(mul_res.imaginary, 2) + Math.pow(mul_res.real, 2))
+
+            result = result + "<br>" +"V: " + fres.toFixed(6) + "e^" + (zavie - 90).toFixed(2);
+
+            document.getElementById("p1").innerHTML = result;
 
 
         }
